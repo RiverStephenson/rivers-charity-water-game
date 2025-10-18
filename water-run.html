@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Water Run</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="water-run.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Top Bar (Score & Pause) -->
+    <div id="top-bar" style="display:none;">
+      <div id="score">0</div>
+      <button id="pause-btn" aria-label="Pause">&#10073;&#10073;</button>
+    </div>
+    <!-- Game Canvas -->
+    <canvas id="game-canvas" width="360" height="540" tabindex="0"></canvas>
+    <!-- Home Overlay -->
+    <div class="overlay" id="home-overlay">
+      <a class="logo-link" href="https://www.charitywater.org/" target="_blank" rel="noopener">
+        <img src="img/charitywater-1.png" alt="charity:water Logo">
+      </a>
+      <div class="game-title">Water Run</div>
+      <div id="highscore-label">High Score: <span id="highscore-value">0</span></div>
+      <button class="btn" id="start-btn">Start New Game</button>
+      <button class="btn" id="howto-btn">How to Play</button>
+    </div>
+    <!-- How To Play Modal -->
+    <div class="modal" id="howto-modal" hidden>
+      <div class="modal-content">
+        <h2>How to Play</h2>
+        <p>
+          Move your bucket left and right to catch <b style="color:#2196f3">blue</b> water droplets.<br>
+          Avoid <b style="color:#43a047">green</b> and <b style="color:#222">black</b> droplets.<br>
+          <br>
+          <b>Controls:</b><br>
+          Arrow keys (desktop) or swipe (mobile) to move.<br>
+          Pause with the pause button.<br>
+          <br>
+          <b>Scoring:</b><br>
+          Blue = +1 point, Green = -1 point, Black = game over.<br>
+          <br>
+          <b>Blue Streaks:</b> Every 5 blue drops in a row doubles your points per blue drop (2x, 4x, 8x, etc.).<br>
+          <b>Green Penalties:</b> Each consecutive green drop increases the penalty (-1, -2, -3, -4, etc.).<br>
+          Hitting green ends blue streaks. Green penalties persist until game over.<br>
+          <br>
+          Try to beat your high score!
+        </p>
+        <button class="btn" id="close-howto-btn">Close</button>
+      </div>
+    </div>
+    <!-- Pause Modal -->
+    <div class="modal" id="pause-modal" hidden>
+      <div class="modal-content">
+        <h2>Paused</h2>
+        <button class="btn" id="resume-btn">Resume</button>
+        <button class="btn" id="quit-btn">Quit to Menu</button>
+      </div>
+    </div>
+    <!-- Game Over Modal -->
+    <div class="modal" id="gameover-modal" hidden>
+      <div class="modal-content">
+        <h2>Game Over</h2>
+        <div>Your Score: <span id="final-score">0</span></div>
+        <div>High Score: <span id="final-highscore">0</span></div>
+        <button class="btn" id="restart-btn">Restart</button>
+        <button class="btn" id="menu-btn">Main Menu</button>
+      </div>
+    </div>
+    <!-- Score Animation -->
+    <div id="score-anim" class="score-anim" style="display:none;"></div>
+  </div>
+  <!-- <audio id="sound-blue" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae1e2.mp3" preload="auto"></audio>
+  <audio id="sound-green" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae1e2.mp3" preload="auto"></audio>
+  <audio id="sound-black" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae1e2.mp3" preload="auto"></audio>
+  <audio id="sound-highscore" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae1e2.mp3" preload="auto"></audio> -->
+  <script src="water-run.js"></script>
+</body>
+</html>
+ 
+  
