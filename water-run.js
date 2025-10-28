@@ -38,6 +38,10 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 // --- Responsive Setup ---
 function setupCanvasSize() {
   let container = $('#game-container');
+  let topBar = $('#top-bar');
+  let pauseBtn = $('#pause-btn');
+  let scoreElement = $('#score');
+  let highscoreElement = $('#highscore-value');
   
   // Check if we should use horizontal layout
   isHorizontal = window.innerWidth >= 1024 && window.innerHeight >= 600;
@@ -85,6 +89,59 @@ function setupCanvasSize() {
       transform: none !important;
     `;
     
+    // Position top bar above the canvas
+    if (topBar) {
+      topBar.style.cssText = `
+        position: absolute !important;
+        top: ${marginTop - 50}px !important;
+        left: ${marginLeft}px !important;
+        width: ${w}px !important;
+        height: 40px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-radius: 5px !important;
+        padding: 0 15px !important;
+        color: white !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        z-index: 1001 !important;
+        box-sizing: border-box !important;
+      `;
+      
+      // Update the top bar HTML to include both score and pause button with icon
+      topBar.innerHTML = `
+        <div class="score-display">Current Score: <span id="score">${score}</span>&nbsp;&nbsp;&nbsp;Highscore: <span id="highscore-value">${highscore}</span></div>
+        <button id="pause-btn" onclick="pauseGame()">⏸</button>
+      `;
+    }
+    
+    // Style the pause button
+    let newPauseBtn = $('#pause-btn');
+    if (newPauseBtn) {
+      newPauseBtn.style.cssText = `
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 2px solid rgba(255, 255, 255, 0.5) !important;
+        border-radius: 5px !important;
+        color: white !important;
+        padding: 8px 12px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        transition: background 0.3s ease !important;
+        line-height: 1 !important;
+      `;
+      
+      // Add hover effect
+      newPauseBtn.addEventListener('mouseenter', () => {
+        newPauseBtn.style.background = 'rgba(255, 255, 255, 0.3) !important';
+      });
+      newPauseBtn.addEventListener('mouseleave', () => {
+        newPauseBtn.style.background = 'rgba(255, 255, 255, 0.2) !important';
+      });
+    }
+    
     container.classList.add('horizontal-layout');
   } else {
     // Vertical layout: reset and center normally
@@ -115,6 +172,12 @@ function setupCanvasSize() {
       position: relative !important;
       transform: none !important;
     `;
+    
+    // Reset top bar styles for vertical layout
+    if (topBar) {
+      topBar.style.cssText = '';
+      topBar.innerHTML = ''; // Clear the custom HTML
+    }
     
     container.classList.remove('horizontal-layout');
   }
@@ -148,7 +211,13 @@ function resetGame() {
   gameover = false;
   paused = false;
   hasRecordCelebration = false;
-  $('#score').textContent = score;
+  
+  // Update score display
+  let scoreElement = $('#score');
+  if (scoreElement) {
+    scoreElement.textContent = score;
+  }
+  
   $('#top-bar').style.display = '';
   hideModal('#pause-modal');
   hideModal('#gameover-modal');
@@ -427,13 +496,20 @@ function handleDroplet(d) {
   if (score > highscore && !hasRecordCelebration) {
     highscore = score;
     localStorage.setItem('waterrun-highscore', highscore);
-    $('#highscore-value').textContent = highscore;
+    let highscoreElement = $('#highscore-value');
+    if (highscoreElement) {
+      highscoreElement.textContent = highscore;
+    }
     hasRecordCelebration = true;
     showHighScoreCelebration();
     playSound('highscore');
   }
   
-  $('#score').textContent = score;
+  // Update score display
+  let scoreElement = $('#score');
+  if (scoreElement) {
+    scoreElement.textContent = score;
+  }
 }
 // --- Score Animation ---
 function showScoreAnim(text, color) {
@@ -562,7 +638,13 @@ function endGame() {
     highscore = score;
     localStorage.setItem('waterrun-highscore', highscore);
     $('#final-highscore').textContent = highscore;
-    $('#highscore-value').textContent = highscore;
+    
+    // Update all highscore displays
+    let highscoreElements = document.querySelectorAll('#highscore-value');
+    highscoreElements.forEach(el => {
+      if (el) el.textContent = highscore;
+    });
+    
     $('#highscore-label').classList.add('highscore-flash');
     // Only show celebration if we haven't already celebrated during gameplay
     if (!hasRecordCelebration) {
@@ -719,9 +801,22 @@ window.addEventListener('DOMContentLoaded', () => {
   canvas = $('#game-canvas');
   ctx = canvas.getContext('2d');
   setupCanvasSize();
+  
   // --- Load Highscore ---
   highscore = parseInt(localStorage.getItem('waterrun-highscore') || '0', 10);
-  $('#highscore-value').textContent = highscore;
+  
+  // Update all highscore displays on page load
+  let highscoreElements = document.querySelectorAll('#highscore-value');
+  highscoreElements.forEach(el => {
+    if (el) el.textContent = highscore;
+  });
+  
+  // Also update any highscore displays in the home overlay
+  let homeHighscoreElement = $('#home-overlay #highscore-value');
+  if (homeHighscoreElement) {
+    homeHighscoreElement.textContent = highscore;
+  }
+  
   // --- Hide overlays on click outside modal-content ---
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', e => {
@@ -746,6 +841,13 @@ window.addEventListener('DOMContentLoaded', () => {
   $('#resume-btn').onclick = resumeGame;
   $('#quit-btn').onclick = () => {
     running = false;
+    
+    // Update highscore display when quitting to menu
+    let homeHighscoreElement = $('#home-overlay #highscore-value');
+    if (homeHighscoreElement) {
+      homeHighscoreElement.textContent = highscore;
+    }
+    
     showOverlay('#home-overlay');
     hideModal('#pause-modal');
     $('#top-bar').style.display = 'none';
@@ -756,6 +858,13 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   $('#menu-btn').onclick = () => {
     running = false;
+    
+    // Update highscore display when returning to menu
+    let homeHighscoreElement = $('#home-overlay #highscore-value');
+    if (homeHighscoreElement) {
+      homeHighscoreElement.textContent = highscore;
+    }
+    
     showOverlay('#home-overlay');
     hideModal('#gameover-modal');
     $('#top-bar').style.display = 'none';
