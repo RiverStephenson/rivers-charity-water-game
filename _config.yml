@@ -1,0 +1,5 @@
+# Disable Jekyll theme to prevent "improve this page" footer
+theme: null
+plugins: []
+markdown: kramdown
+highlighter: rouge

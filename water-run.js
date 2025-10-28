@@ -18,7 +18,7 @@ const DROPLET_SCORES = {
 };
 // --- Game State ---
 let canvas, ctx, width, height, lanes, laneWidth;
-let avatarLane, isMobile, running, paused, gameover;
+let avatarLane, isMobile, isHorizontal, running, paused, gameover;
 let droplets = [];
 let dropletPool = [];
 let score = 0, highscore = 0;
@@ -41,14 +41,30 @@ function setupCanvasSize() {
   let container = $('#game-container');
   let w = container.offsetWidth;
   let h = Math.round(w * 1.5);
-  if (window.innerHeight < h + 120) h = window.innerHeight - 120;
+  
+  // Check if we should use horizontal layout
+  isHorizontal = window.innerWidth >= 1024 && window.innerHeight >= 600;
+  
+  if (isHorizontal) {
+    // Horizontal layout: take up majority of screen
+    w = Math.min(window.innerWidth - 40, window.innerWidth * 0.95);
+    h = Math.min(window.innerHeight - 120, window.innerHeight * 0.8);
+    
+    // Add horizontal class to container for CSS styling
+    container.classList.add('horizontal-layout');
+  } else {
+    // Vertical layout (original)
+    if (window.innerHeight < h + 120) h = window.innerHeight - 120;
+    container.classList.remove('horizontal-layout');
+  }
+  
   canvas.width = w;
   canvas.height = h;
   width = w;
   height = h;
   isMobile = window.innerWidth < 700;
   lanes = isMobile ? LANES_MOBILE : LANES_DESKTOP;
-  laneWidth = width / lanes;
+  laneWidth = isHorizontal ? height / lanes : width / lanes;
 }
 // --- Droplet Pool ---
 function getDroplet() {
@@ -85,8 +101,16 @@ function spawnDroplet() {
   let d = getDroplet();
   d.type = DROPLET_TYPES[Math.random() < 0.7 ? 0 : (Math.random() < 0.7 ? 1 : 2)];
   d.lane = Math.floor(Math.random() * lanes);
-  d.y = -DROPLET_RADIUS * 2;
   d.speed = lerp(speed, speed * 1.3, Math.random() * 0.5);
+  
+  if (isHorizontal) {
+    d.x = width + DROPLET_RADIUS * 2; // Start from right side
+    d.y = d.lane * laneWidth + laneWidth / 2;
+  } else {
+    d.y = -DROPLET_RADIUS * 2;
+    d.x = d.lane * laneWidth + laneWidth / 2;
+  }
+  
   droplets.push(d);
 }
 // --- Game Loop ---
@@ -95,41 +119,74 @@ function gameLoop(ts) {
   let dt = ts - lastFrame;
   lastFrame = ts;
   ctx.clearRect(0, 0, width, height);
+  
   // Draw lane lines (dashed white road lines)
   for (let i = 1; i < lanes; ++i) {
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 3;
     ctx.setLineDash([30, 25]); // 30px dashes with 25px gaps
     ctx.beginPath();
-    ctx.moveTo(i * laneWidth, 0);
-    ctx.lineTo(i * laneWidth, height);
+    if (isHorizontal) {
+      // Horizontal lanes
+      ctx.moveTo(0, i * laneWidth);
+      ctx.lineTo(width, i * laneWidth);
+    } else {
+      // Vertical lanes
+      ctx.moveTo(i * laneWidth, 0);
+      ctx.lineTo(i * laneWidth, height);
+    }
     ctx.stroke();
     ctx.setLineDash([]); // Reset line dash for other drawing
   }
+  
   // Draw avatar
   drawAvatar(avatarLane);
+  
   // Move and draw droplets
   for (let i = droplets.length - 1; i >= 0; --i) {
     let d = droplets[i];
-    d.y += d.speed;
+    
+    if (isHorizontal) {
+      d.x -= d.speed; // Move left in horizontal mode
+    } else {
+      d.y += d.speed; // Move vertically in vertical mode
+    }
+    
     drawDroplet(d);
-    // Collision
-    if (
-      d.lane === avatarLane &&
-      d.y + DROPLET_RADIUS > height - AVATAR_HEIGHT - AVATAR_Y_OFFSET &&
-      d.y - DROPLET_RADIUS < height - AVATAR_Y_OFFSET
-    ) {
+    
+    // Collision detection
+    let collision = false;
+    if (isHorizontal) {
+      collision = d.lane === avatarLane &&
+        d.x - DROPLET_RADIUS < AVATAR_WIDTH + AVATAR_Y_OFFSET &&
+        d.x + DROPLET_RADIUS > AVATAR_Y_OFFSET;
+    } else {
+      collision = d.lane === avatarLane &&
+        d.y + DROPLET_RADIUS > height - AVATAR_HEIGHT - AVATAR_Y_OFFSET &&
+        d.y - DROPLET_RADIUS < height - AVATAR_Y_OFFSET;
+    }
+    
+    if (collision) {
       handleDroplet(d);
       droplets.splice(i, 1);
       releaseDroplet(d);
       continue;
     }
+    
     // Out of bounds
-    if (d.y - DROPLET_RADIUS > height) {
+    let outOfBounds = false;
+    if (isHorizontal) {
+      outOfBounds = d.x + DROPLET_RADIUS < 0; // Off left side
+    } else {
+      outOfBounds = d.y - DROPLET_RADIUS > height;
+    }
+    
+    if (outOfBounds) {
       droplets.splice(i, 1);
       releaseDroplet(d);
     }
   }
+  
   // Animate score
   if (animatingScore) {
     $('#score-anim').style.display = '';
@@ -153,11 +210,20 @@ function gameLoop(ts) {
 }
 // --- Drawing ---
 function drawAvatar(lane) {
-  let x = lane * laneWidth + laneWidth / 2;
-  let y = height - AVATAR_HEIGHT / 2 - AVATAR_Y_OFFSET;
+  let x, y;
+  
+  if (isHorizontal) {
+    x = AVATAR_Y_OFFSET + AVATAR_WIDTH / 2; // Position on left side
+    y = lane * laneWidth + laneWidth / 2;
+  } else {
+    x = lane * laneWidth + laneWidth / 2;
+    y = height - AVATAR_HEIGHT / 2 - AVATAR_Y_OFFSET;
+  }
   
   ctx.save();
   ctx.translate(x, y);
+  
+  // Don't rotate avatar - keep it upright in both orientations
   
   // Draw person
   ctx.strokeStyle = '#333';
@@ -231,9 +297,18 @@ function drawAvatar(lane) {
   
   ctx.restore();
 }
+
 function drawDroplet(d) {
-  let x = d.lane * laneWidth + laneWidth / 2;
-  let y = d.y;
+  let x, y;
+  
+  if (isHorizontal) {
+    x = d.x;
+    y = d.y;
+  } else {
+    x = d.x;
+    y = d.y;
+  }
+  
   ctx.save();
   ctx.translate(x, y);
   ctx.beginPath();
@@ -465,30 +540,61 @@ function hideModal(sel) { $(sel).setAttribute('hidden', ''); }
 // --- Event Handlers ---
 function handleKey(e) {
   if (!running || paused || gameover) return;
-  if (e.key === 'ArrowLeft') {
-    avatarLane = clamp(avatarLane - 1, 0, lanes - 1);
-  } else if (e.key === 'ArrowRight') {
-    avatarLane = clamp(avatarLane + 1, 0, lanes - 1);
+  
+  if (isHorizontal) {
+    // Up/Down controls for horizontal layout
+    if (e.key === 'ArrowUp') {
+      avatarLane = clamp(avatarLane - 1, 0, lanes - 1);
+    } else if (e.key === 'ArrowDown') {
+      avatarLane = clamp(avatarLane + 1, 0, lanes - 1);
+    }
+  } else {
+    // Left/Right controls for vertical layout
+    if (e.key === 'ArrowLeft') {
+      avatarLane = clamp(avatarLane - 1, 0, lanes - 1);
+    } else if (e.key === 'ArrowRight') {
+      avatarLane = clamp(avatarLane + 1, 0, lanes - 1);
+    }
   }
 }
+
 // --- Touch/Swipe for Mobile ---
 let touchStartX = null;
+let touchStartY = null;
+
 function handleTouchStart(e) {
   if (!running || paused || gameover) return;
   if (e.touches.length === 1) {
     touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
   }
 }
+
 function handleTouchEnd(e) {
   if (!running || paused || gameover) return;
-  if (touchStartX === null) return;
+  if (touchStartX === null || touchStartY === null) return;
+  
   let dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 30) {
-    if (dx < 0) avatarLane = clamp(avatarLane - 1, 0, lanes - 1);
-    else avatarLane = clamp(avatarLane + 1, 0, lanes - 1);
+  let dy = e.changedTouches[0].clientY - touchStartY;
+  
+  if (isHorizontal) {
+    // Vertical swipes for horizontal layout
+    if (Math.abs(dy) > 30) {
+      if (dy < 0) avatarLane = clamp(avatarLane - 1, 0, lanes - 1);
+      else avatarLane = clamp(avatarLane + 1, 0, lanes - 1);
+    }
+  } else {
+    // Horizontal swipes for vertical layout
+    if (Math.abs(dx) > 30) {
+      if (dx < 0) avatarLane = clamp(avatarLane - 1, 0, lanes - 1);
+      else avatarLane = clamp(avatarLane + 1, 0, lanes - 1);
+    }
   }
+  
   touchStartX = null;
+  touchStartY = null;
 }
+
 // --- Button Events ---
 window.addEventListener('DOMContentLoaded', () => {
   canvas = $('#game-canvas');
@@ -556,7 +662,14 @@ window.addEventListener('resize', () => {
 // --- Keyboard ---
 window.addEventListener('keydown', e => {
   if ($('#home-overlay').style.display !== 'none' && !$('#home-overlay').hasAttribute('hidden')) {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    let shouldStart = false;
+    if (isHorizontal) {
+      shouldStart = e.key === 'ArrowUp' || e.key === 'ArrowDown';
+    } else {
+      shouldStart = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    }
+    
+    if (shouldStart) {
       hideOverlay('#home-overlay');
       startGame();
     }
