@@ -37,33 +37,92 @@ function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 // --- Responsive Setup ---
 function setupCanvasSize() {
-  // Responsive: fit to parent, keep aspect ratio
   let container = $('#game-container');
-  let w = container.offsetWidth;
-  let h = Math.round(w * 1.5);
   
   // Check if we should use horizontal layout
   isHorizontal = window.innerWidth >= 1024 && window.innerHeight >= 600;
   
   if (isHorizontal) {
-    // Horizontal layout: take up majority of screen
-    w = Math.min(window.innerWidth - 40, window.innerWidth * 0.95);
-    h = Math.min(window.innerHeight - 120, window.innerHeight * 0.8);
+    // Horizontal layout: smaller canvas size
+    let w = Math.min(window.innerWidth * 0.8, window.innerWidth - 100);
+    let h = Math.min(window.innerHeight * 0.7, window.innerHeight - 150);
     
-    // Add horizontal class to container for CSS styling
+    // Debug logging
+    console.log('Horizontal layout:', { windowWidth: window.innerWidth, windowHeight: window.innerHeight, canvasWidth: w, canvasHeight: h });
+    
+    // Set canvas dimensions
+    canvas.width = w;
+    canvas.height = h;
+    
+    // Use a simpler centering approach with margin calculations
+    let marginLeft = (window.innerWidth - w) / 2;
+    let marginTop = (window.innerHeight - h) / 2;
+    
+    container.style.cssText = `
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: 1000 !important;
+      display: block !important;
+    `;
+    
+    // Use margin-based centering instead of transform
+    canvas.style.cssText = `
+      position: absolute !important;
+      top: ${marginTop}px !important;
+      left: ${marginLeft}px !important;
+      width: ${w}px !important;
+      height: ${h}px !important;
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      transform: none !important;
+    `;
+    
     container.classList.add('horizontal-layout');
   } else {
-    // Vertical layout (original)
-    if (window.innerHeight < h + 120) h = window.innerHeight - 120;
+    // Vertical layout: reset and center normally
+    let w = Math.min(window.innerWidth - 40, container.offsetWidth || window.innerWidth - 40);
+    let h = window.innerHeight - 150;
+    
+    canvas.width = w;
+    canvas.height = h;
+    
+    // Reset container completely
+    container.style.cssText = `
+      position: relative !important;
+      width: 100% !important;
+      height: auto !important;
+      margin: 0 auto !important;
+      padding: 20px 0 !important;
+      z-index: auto !important;
+      display: flex !important;
+      justify-content: center !important;
+    `;
+    
+    // Reset canvas styles
+    canvas.style.cssText = `
+      display: block !important;
+      margin: 0 auto !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      position: relative !important;
+      transform: none !important;
+    `;
+    
     container.classList.remove('horizontal-layout');
   }
   
-  canvas.width = w;
-  canvas.height = h;
-  width = w;
-  height = h;
+  width = canvas.width;
+  height = canvas.height;
   isMobile = window.innerWidth < 700;
-  lanes = isMobile ? LANES_MOBILE : LANES_DESKTOP;
+  lanes = (isMobile && !isHorizontal) ? LANES_MOBILE : LANES_DESKTOP;
   laneWidth = isHorizontal ? height / lanes : width / lanes;
 }
 // --- Droplet Pool ---
@@ -533,10 +592,70 @@ function resumeGame() {
   requestAnimationFrame(gameLoop);
 }
 // --- UI Helpers ---
-function showOverlay(sel) { $(sel).removeAttribute('hidden'); }
-function hideOverlay(sel) { $(sel).setAttribute('hidden', ''); }
-function showModal(sel) { $(sel).removeAttribute('hidden'); }
-function hideModal(sel) { $(sel).setAttribute('hidden', ''); }
+function showOverlay(sel) { 
+  let overlay = $(sel);
+  overlay.removeAttribute('hidden');
+  // Make overlay cover entire screen and hide canvas
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.zIndex = '9999';
+  // Keep original grey background instead of black
+  if (!overlay.style.backgroundColor) {
+    overlay.style.backgroundColor = 'rgba(128, 128, 128, 0.95)';
+  }
+}
+
+function hideOverlay(sel) { 
+  let overlay = $(sel);
+  overlay.setAttribute('hidden', '');
+  // Reset overlay styles
+  overlay.style.position = '';
+  overlay.style.top = '';
+  overlay.style.left = '';
+  overlay.style.width = '';
+  overlay.style.height = '';
+  overlay.style.zIndex = '';
+  overlay.style.backgroundColor = '';
+}
+
+function showModal(sel) { 
+  let modal = $(sel);
+  modal.removeAttribute('hidden');
+  // Make modal cover entire screen and hide canvas
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100vw';
+  modal.style.height = '100vh';
+  modal.style.zIndex = '9999';
+  // Keep original grey background instead of black
+  if (!modal.style.backgroundColor) {
+    modal.style.backgroundColor = 'rgba(128, 128, 128, 0.95)';
+  }
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+}
+
+function hideModal(sel) { 
+  let modal = $(sel);
+  modal.setAttribute('hidden', '');
+  // Reset modal styles
+  modal.style.position = '';
+  modal.style.top = '';
+  modal.style.left = '';
+  modal.style.width = '';
+  modal.style.height = '';
+  modal.style.zIndex = '';
+  modal.style.backgroundColor = '';
+  modal.style.display = '';
+  modal.style.justifyContent = '';
+  modal.style.alignItems = '';
+}
+
 // --- Event Handlers ---
 function handleKey(e) {
   if (!running || paused || gameover) return;
