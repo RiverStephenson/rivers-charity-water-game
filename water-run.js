@@ -699,7 +699,7 @@ function playSound(type) {
           el.volume = 0.5; // Streak sound at 50% volume
           break;
         case 'highscore':
-          el.volume = 0.6; // High score sound at 60% volume
+          el.volume = 0.7; // Highscore sound at 70% volume (slightly louder for celebration)
           break;
         default:
           el.volume = 0.5; // Default volume
