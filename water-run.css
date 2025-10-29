@@ -408,6 +408,66 @@ canvas {
   display: none;
 }
 
+/* === FOOTER === */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(28, 37, 84, 0.85);
+  border-top: 2px solid var(--yellow);
+  z-index: 50; /* Increased from 5 to 50 to appear above overlays (z-index 20) and modals (z-index 30) */
+  padding: 0.8rem 0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.footer-text {
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.social-links {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.social-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(248, 193, 14, 0.1);
+  color: var(--yellow);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.social-links a:hover {
+  background: var(--yellow);
+  color: var(--navy);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(248, 193, 14, 0.3);
+}
+
+.social-links svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 600px) {
   .game-title { font-size: 1.4rem; }
@@ -415,6 +475,30 @@ canvas {
   #game-container { max-width: 100vw; }
   canvas { max-width: 100vw; }
   #score { font-size: 1.1rem; }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .footer-text {
+    font-size: 0.8rem;
+  }
+  
+  .social-links {
+    gap: 0.6rem;
+  }
+  
+  .social-links a {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .social-links svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* === DROPLET COLORS (for JS reference) === */
