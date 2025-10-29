@@ -146,8 +146,8 @@ function setupCanvasSize() {
       
       // Update the top bar HTML to include both score and pause button with icon
       topBar.innerHTML = `
-        <div class="score-display">Current Score: <span id="score">${score}</span>&nbsp;&nbsp;&nbsp;Highscore: <span id="highscore-value">${highscore}</span></div>
-        <button id="pause-btn" onclick="pauseGame()">⏸</button>
+        <div class="score-display" style="font-family: 'Proxima Nova', Arial, sans-serif;">Current Score: <span id="score">${score}</span>&nbsp;&nbsp;&nbsp;Highscore: <span id="highscore-value">${highscore}</span></div>
+        <button id="pause-btn" onclick="pauseGame()" style="font-family: 'Proxima Nova', Arial, sans-serif;">⏸</button>
       `;
     }
     
@@ -161,6 +161,7 @@ function setupCanvasSize() {
         color: white !important;
         padding: 8px 12px !important;
         font-size: 16px !important;
+        font-family: 'Proxima Nova', Arial, sans-serif !important;
         font-weight: bold !important;
         cursor: pointer !important;
         transition: background 0.3s ease !important;
