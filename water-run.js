@@ -16,6 +16,39 @@ const DROPLET_SCORES = {
   green: -1,
   black: 0
 };
+
+// Difficulty settings
+const DIFFICULTY_SETTINGS = {
+  easy: {
+    initialSpeed: 2.8,      // Slightly faster than normal starting speed
+    speedIncrease: 0,       // No speed increase
+    initialSpawnInterval: 800,
+    spawnIntervalDecrease: 0, // No spawn interval decrease
+    minInterval: 800,        // Keep interval constant
+    extraSpawnChance: 0.3,    // Same as normal
+    // Droplet distribution: [blue chance, green chance, black chance]
+    dropletDistribution: [0.7, 0.25, 0.05] // Same as normal
+  },
+  normal: {
+    initialSpeed: 2.2,
+    speedIncrease: 0.02,
+    initialSpawnInterval: 800,
+    spawnIntervalDecrease: 7,
+    minInterval: 250,
+    extraSpawnChance: 0.3,    // 30% chance for extra droplet
+    dropletDistribution: [0.7, 0.25, 0.05] // 70% blue, 25% green, 5% black
+  },
+  hard: {
+    initialSpeed: 2.2,       // Same as normal
+    speedIncrease: 0.02,     // Same as normal
+    initialSpawnInterval: 800, // Same as normal
+    spawnIntervalDecrease: 7,  // Same as normal
+    minInterval: 250,        // Same as normal
+    extraSpawnChance: 0.8,   // 80% chance for extra droplet (50% more than normal's 30%)
+    dropletDistribution: [0.65, 0.25, 0.10] // 65% blue, 25% green, 10% black (more black droplets)
+  }
+};
+
 // --- Game State ---
 let canvas, ctx, width, height, lanes, laneWidth;
 let avatarLane, isMobile, isHorizontal, running, paused, gameover;
@@ -207,8 +240,12 @@ function resetGame() {
   greenMultiplier = 1;
   greenRow = 0;
   spawnTimer = 0;
-  spawnInterval = 800;
-  speed = 2.2;
+  
+  // Set difficulty-based initial values
+  const difficulty = DIFFICULTY_SETTINGS[selectedDifficulty];
+  spawnInterval = difficulty.initialSpawnInterval;
+  speed = difficulty.initialSpeed;
+  
   gameover = false;
   paused = false;
   hasRecordCelebration = false;
@@ -228,7 +265,21 @@ function resetGame() {
 // --- Droplet Spawning ---
 function spawnDroplet() {
   let d = getDroplet();
-  d.type = DROPLET_TYPES[Math.random() < 0.7 ? 0 : (Math.random() < 0.7 ? 1 : 2)];
+  
+  // Get difficulty-based droplet distribution
+  const difficulty = DIFFICULTY_SETTINGS[selectedDifficulty];
+  const [blueChance, greenChance, blackChance] = difficulty.dropletDistribution;
+  
+  // Determine droplet type based on difficulty distribution
+  const rand = Math.random();
+  if (rand < blueChance) {
+    d.type = 'blue';
+  } else if (rand < blueChance + greenChance) {
+    d.type = 'green';
+  } else {
+    d.type = 'black';
+  }
+  
   d.lane = Math.floor(Math.random() * lanes);
   d.speed = lerp(speed, speed * 1.3, Math.random() * 0.5);
   
@@ -326,14 +377,26 @@ function gameLoop(ts) {
   spawnTimer += dt;
   if (spawnTimer > spawnInterval) {
     spawnDroplet();
-    // 30% chance to spawn an additional droplet for more challenge
-    if (Math.random() < 0.3) {
+    
+    // Get difficulty-based extra spawn chance
+    const difficulty = DIFFICULTY_SETTINGS[selectedDifficulty];
+    
+    // Chance to spawn an additional droplet based on difficulty
+    if (Math.random() < difficulty.extraSpawnChance) {
       spawnDroplet();
     }
     spawnTimer = 0;
-    // Increase difficulty
-    speed = Math.min(speed + speedInc, 8);
-    spawnInterval = Math.max(spawnInterval - 7, minInterval);
+    
+    // Apply difficulty-based progression
+    // Increase speed based on difficulty
+    if (difficulty.speedIncrease > 0) {
+      speed = Math.min(speed + difficulty.speedIncrease, 8);
+    }
+    
+    // Decrease spawn interval based on difficulty
+    if (difficulty.spawnIntervalDecrease > 0) {
+      spawnInterval = Math.max(spawnInterval - difficulty.spawnIntervalDecrease, difficulty.minInterval);
+    }
   }
   requestAnimationFrame(gameLoop);
 }
