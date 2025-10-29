@@ -523,17 +523,18 @@ function drawDroplet(d) {
 // --- Droplet Handling ---
 function handleDroplet(d) {
   if (d.type === 'blue') {
-    playSound('blue');
+    playSound('blue'); // Plays water-drip.mp3
     blueStreak++;
     greenStreak = 0;
     score += 1 * blueMultiplier;
     showScoreAnim('+' + (1 * blueMultiplier), COLORS.blue);
     if (blueStreak % 5 === 0) {
       blueMultiplier *= 2;
+      playSound('streak'); // Plays streak-sound.mp3
       showScoreAnim('Blue Streak! x' + blueMultiplier, COLORS.blue);
     }
   } else if (d.type === 'green') {
-    playSound('green');
+    playSound('green'); // Plays green-drop.mp3
     greenStreak++;
     // Check if we're ending a blue streak
     if (blueStreak > 0 && blueMultiplier > 1) {
@@ -552,7 +553,7 @@ function handleDroplet(d) {
       return;
     }
   } else if (d.type === 'black') {
-    playSound('black');
+    playSound('black'); // Plays game-over.mp3
     endGame();
     return;
   }
@@ -683,6 +684,27 @@ function playSound(type) {
   try {
     let el = $('#sound-' + type);
     if (el) {
+      // Set volume levels for different sound effects
+      switch(type) {
+        case 'blue':
+          el.volume = 0.4; // Water drip sound at 40% volume
+          break;
+        case 'green':
+          el.volume = 0.5; // Green drop sound at 50% volume
+          break;
+        case 'black':
+          el.volume = 0.6; // Game over sound at 60% volume
+          break;
+        case 'streak':
+          el.volume = 0.5; // Streak sound at 50% volume
+          break;
+        case 'highscore':
+          el.volume = 0.6; // High score sound at 60% volume
+          break;
+        default:
+          el.volume = 0.5; // Default volume
+      }
+      
       el.currentTime = 0;
       el.play().catch(e => {
         console.warn('Error playing sound:', e);
@@ -692,10 +714,64 @@ function playSound(type) {
     console.warn('Error in playSound:', e);
   }
 }
+
+// --- Background Music Control ---
+function startBackgroundMusic() {
+  try {
+    let music = $('#game-music');
+    if (music) {
+      music.volume = 0.3; // Set volume to 30% so it doesn't overpower sound effects
+      music.currentTime = 0;
+      music.play().catch(e => {
+        console.warn('Error playing background music:', e);
+      });
+    }
+  } catch (e) {
+    console.warn('Error in startBackgroundMusic:', e);
+  }
+}
+
+function stopBackgroundMusic() {
+  try {
+    let music = $('#game-music');
+    if (music) {
+      music.pause();
+      music.currentTime = 0;
+    }
+  } catch (e) {
+    console.warn('Error in stopBackgroundMusic:', e);
+  }
+}
+
+function pauseBackgroundMusic() {
+  try {
+    let music = $('#game-music');
+    if (music) {
+      music.pause();
+    }
+  } catch (e) {
+    console.warn('Error in pauseBackgroundMusic:', e);
+  }
+}
+
+function resumeBackgroundMusic() {
+  try {
+    let music = $('#game-music');
+    if (music) {
+      music.play().catch(e => {
+        console.warn('Error resuming background music:', e);
+      });
+    }
+  } catch (e) {
+    console.warn('Error in resumeBackgroundMusic:', e);
+  }
+}
+
 // --- Game Over ---
 function endGame() {
   running = false;
   gameover = true;
+  stopBackgroundMusic(); // Stop music when game ends
   $('#top-bar').style.display = 'none';
   $('#final-score').textContent = score;
   let isHigh = false;
@@ -729,15 +805,19 @@ function endGame() {
 function pauseGame() {
   if (!running || paused || gameover) return;
   paused = true;
+  pauseBackgroundMusic(); // Pause music when game is paused
   showModal('#pause-modal');
 }
+
 function resumeGame() {
   if (!running || !paused) return;
   paused = false;
+  resumeBackgroundMusic(); // Resume music when game is resumed
   hideModal('#pause-modal');
   lastFrame = performance.now();
   requestAnimationFrame(gameLoop);
 }
+
 // --- UI Helpers ---
 function showOverlay(sel) { 
   let overlay = $(sel);
@@ -920,6 +1000,7 @@ window.addEventListener('DOMContentLoaded', () => {
   $('#resume-btn').onclick = resumeGame;
   $('#quit-btn').onclick = () => {
     running = false;
+    stopBackgroundMusic(); // Stop music when quitting to menu
     
     // Update highscore display when quitting to menu
     let homeHighscoreElement = $('#home-overlay #highscore-value');
@@ -937,6 +1018,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   $('#menu-btn').onclick = () => {
     running = false;
+    stopBackgroundMusic(); // Stop music when returning to menu
     
     // Update highscore display when returning to menu
     let homeHighscoreElement = $('#home-overlay #highscore-value');
@@ -959,6 +1041,7 @@ function startGame() {
   setupCanvasSize();
   resetGame();
   running = true;
+  startBackgroundMusic(); // Start music when game starts
   lastFrame = performance.now();
   requestAnimationFrame(gameLoop);
 }
