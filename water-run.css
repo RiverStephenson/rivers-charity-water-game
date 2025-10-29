@@ -340,95 +340,72 @@ canvas {
   color: var(--cream);
 }
 
-/* === LOGO & TITLE === */
-.logo-link {
-  display: inline-block;
-  margin-bottom: 1.2rem;
-}
-.logo-link img {
-  width: 120px;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(28,37,84,0.08);
-  background: var(--cream);
-}
-.game-title {
-  font-family: 'Montserrat', Arial, sans-serif;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--navy); /* Navy for title */
-  margin-bottom: 0.2em;
-  letter-spacing: 1.5px;
-}
-
-/* === SCORE & HIGHLIGHTS === */
-.highscore-flash {
-  animation: flash 0.7s linear 2;
-}
-@keyframes flash {
-  0%, 100% { color: var(--navy); }
-  30% { color: var(--yellow); }
-  60% { color: var(--navy); }
-}
-.score-anim {
-  position: absolute;
-  left: 50%;
-  top: 10%;
-  transform: translate(-50%, 0);
-  font-size: 2rem;
-  color: var(--yellow); /* Yellow for score pop */
-  font-family: 'Montserrat', Arial, sans-serif;
-  font-weight: bold;
-  pointer-events: none;
-  opacity: 0.9;
-  animation: scorepop 0.7s cubic-bezier(.5,1.5,.5,1) forwards;
-  z-index: 20;
-}
-@keyframes scorepop {
-  0% { opacity: 0.9; transform: translate(-50%, 0) scale(1);}
-  60% { opacity: 1; transform: translate(-50%, -30px) scale(1.2);}
-  100% { opacity: 0; transform: translate(-50%, -60px) scale(0.8);}
-}
-
-/* === TOP BAR === */
-#top-bar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
+/* === DIFFICULTY DROPDOWN === */
+.difficulty-section {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 0.5em 1em;
-  z-index: 10;
-  pointer-events: none;
+  margin: 1rem 0;
+  gap: 0.5rem;
 }
-#score {
+
+.difficulty-section label {
   font-family: 'Montserrat', Arial, sans-serif;
-  font-size: 1.3rem;
-  color: var(--yellow); /* Yellow for score */
-  font-weight: 700;
-  pointer-events: auto;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.3rem;
 }
-#pause-btn {
+
+#difficulty-select {
   background: var(--yellow);
   color: var(--navy);
   border: none;
-  border-radius: 50%;
-  width: 2.2em;
-  height: 2.2em;
-  font-size: 1.3em;
-  font-weight: bold;
+  border-radius: 6px;
+  padding: 0.5em 2em 0.5em 1em;
+  font-size: 0.95rem;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 600;
   cursor: pointer;
-  pointer-events: auto;
   box-shadow: 0 1px 4px rgba(28,37,84,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
+  min-width: 100px;
+  text-align: center;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231C2554' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5em center;
+  background-size: 0.8em;
+  position: relative;
 }
-#pause-btn:hover, #pause-btn:focus {
+
+#difficulty-select:focus {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* Style the dropdown options */
+#difficulty-select option {
+  background: var(--cream);
+  color: var(--navy);
+  padding: 0.5em 1em;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+#difficulty-select option:hover {
+  background: var(--yellow);
+  color: var(--navy);
+}
+
+#difficulty-select option:checked {
   background: var(--navy);
   color: var(--yellow);
-  outline: none;
+}
+
+/* For browsers that support it, style the dropdown menu */
+#difficulty-select::-ms-expand {
+  display: none;
 }
 
 /* === RESPONSIVE === */

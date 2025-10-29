@@ -30,6 +30,7 @@ let speed = 2.2, speedInc = 0.02, minInterval = 250;
 let lastFrame = 0;
 let animatingScore = false;
 let hasRecordCelebration = false;
+let selectedDifficulty = 'easy'; // Add difficulty tracking
 // --- DOM Elements ---
 const $ = sel => document.querySelector(sel);
 // --- Utility ---
@@ -817,6 +818,15 @@ window.addEventListener('DOMContentLoaded', () => {
     homeHighscoreElement.textContent = highscore;
   }
   
+  // --- Setup difficulty dropdown ---
+  let difficultySelect = $('#difficulty-select');
+  if (difficultySelect) {
+    difficultySelect.value = selectedDifficulty;
+    difficultySelect.addEventListener('change', (e) => {
+      selectedDifficulty = e.target.value;
+    });
+  }
+  
   // --- Hide overlays on click outside modal-content ---
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', e => {
@@ -832,6 +842,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Button events
   $('#start-btn').onclick = () => {
+    // Get selected difficulty before starting
+    let difficultySelect = $('#difficulty-select');
+    if (difficultySelect) {
+      selectedDifficulty = difficultySelect.value;
+    }
     hideOverlay('#home-overlay');
     startGame();
   };
