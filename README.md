@@ -19,7 +19,7 @@ A fun arcade-style game supporting charity: water's mission to bring clean water
 
 ## Play Online
 
-[Play Water Run](https://yourusername.github.io/repository-name/)
+[Play Water Run](https://riverstephenson.github.io/rivers-charity-water-game/)
 
 ## About charity: water
 
